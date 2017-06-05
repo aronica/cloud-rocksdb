@@ -24,7 +24,7 @@ public abstract class SingleFieldCommand extends Command{
 
     public Command readBody(ByteBuf out) {
         content = new byte[out.readableBytes()];
-        out.writeBytes(content);
+        out.readBytes(content);
         return this;
     }
 }

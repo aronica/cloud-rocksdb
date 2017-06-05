@@ -27,16 +27,18 @@ public abstract class Response<V> extends Command {
         }
     }
 
-    protected Command readBody(ByteBuf out) {
-        this.code = out.readByte();
-        byte exeLen = out.readByte();
-        this.exe = new byte[exeLen];
-        out.writeBytes(exe);
+    protected Command readBody(ByteBuf in) {
+        this.code = in.readByte();
+        byte exeLen = in.readByte();
+        if(exeLen > 0){
+            this.exe = new byte[exeLen];
+            in.writeBytes(exe);
+        }
         return this;
     }
 
     public int length() {
-        return 1 + 1 + exe.length;
+        return 1 +  (exe == null?1:exe.length+1);
     }
 
     public V getResult(){

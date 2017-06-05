@@ -8,13 +8,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PutCommand extends MultiFieldCommand {
 
-    private byte[] key;
-    private byte[] value;
 
     public PutCommand(byte[] key,byte[]content) {
         super(key,content);
-        this.key = key;
-        this.value = content;
     }
 
     public COMMAND_TYPE getType() {
@@ -22,18 +18,12 @@ public class PutCommand extends MultiFieldCommand {
     }
 
     public byte[] getKey() {
-        return key;
+        return content[0];
     }
 
-    public void setKey(byte[] key) {
-        this.key = key;
-    }
 
     public byte[] getValue() {
-        return value;
+        return content[1];
     }
 
-    public void setValue(byte[] value) {
-        this.value = value;
-    }
 }

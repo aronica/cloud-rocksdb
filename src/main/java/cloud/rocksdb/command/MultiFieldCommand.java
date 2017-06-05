@@ -25,9 +25,11 @@ public abstract class MultiFieldCommand extends Command{
         if(length>-1){
             return length;
         }
+        int len = 0;
         for(byte[] con:content){
-            length += con.length;
+            len += con.length + 4;
         }
+        length = len;
         return length;
     }
 

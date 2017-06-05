@@ -1,9 +1,9 @@
 package cloud.rocksdb;
 
+import cloud.rocksdb.command.Command;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
-import cloud.rocksdb.command.Command;
 
 /**
  * Created by fafu on 2017/5/30.
@@ -11,6 +11,7 @@ import cloud.rocksdb.command.Command;
 public class ReplicatorEncoder extends MessageToByteEncoder<Command> {
 
     protected void encode(ChannelHandlerContext ctx, Command msg, ByteBuf out) throws Exception {
-        msg.writeBody(out);
+        if(msg != null)
+            msg.write(out);
     }
 }

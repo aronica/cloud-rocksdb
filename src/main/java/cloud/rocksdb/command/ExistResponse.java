@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
  * Created by fafu on 2017/5/31.
  */
 @NoArgsConstructor
-public class ExistResponse extends Response {
+public class ExistResponse extends Response<Boolean> {
 
     private boolean content;
 
@@ -38,7 +38,7 @@ public class ExistResponse extends Response {
     }
 
     @Override
-    public Object getResult() {
+    public Boolean getResult() {
         return content;
     }
 }

@@ -23,7 +23,7 @@ public abstract class Command {
     }
 
     private void writeHeader(ByteBuf out) {
-        out.writeInt(length() + 1 +  4);
+        out.writeInt(length() + 1 +  4 );
         out.writeByte(getType().getVal());
         out.writeInt(seq);
     }

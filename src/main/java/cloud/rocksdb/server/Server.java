@@ -1,6 +1,7 @@
 package cloud.rocksdb.server;
 
 import cloud.rocksdb.ReplicatorDecoder;
+import cloud.rocksdb.ReplicatorEncoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -30,6 +31,7 @@ public class Server {
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(1024*1024*1024,0,4));
                             ch.pipeline().addLast(new ReplicatorDecoder());
+                            ch.pipeline().addLast(new ReplicatorEncoder());
                             ch.pipeline().addLast(new ServerHandler());
                         }
                     });

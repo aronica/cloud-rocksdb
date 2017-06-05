@@ -29,7 +29,7 @@ public class GetResponse extends Response<byte[]> {
     protected Command readBody(ByteBuf out) {
         super.readBody(out);
         this.content = new byte[out.readableBytes()];
-        out.readBytes(out);
+        out.readBytes(this.content);
         return this;
     }
 

@@ -1,9 +1,6 @@
 package cloud.rocksdb.client;
 
-import cloud.rocksdb.command.ExistCommand;
-import cloud.rocksdb.command.GetLatestSequenceNumCommand;
-import cloud.rocksdb.command.PutCommand;
-import cloud.rocksdb.command.MultiGetCommand;
+import cloud.rocksdb.command.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +26,22 @@ public class BinaryClient implements Client<byte[]> {
     }
 
     @Override
-    public byte[] get(byte[] key) {
-        return new byte[0];
+    public byte[] get(byte[] key) throws Exception {
+        Connection connection = null;
+        try{
+            connection = pool.getConnection();
+            Response<byte[]> response = (Response<byte[]>)connection.sendTask(new Task(new GetCommand(key),connection));
+            System.out.println("done in get");
+            return response.getResult();
+        } catch (TimeoutException e) {
+            log.error("",e);
+            throw e;
+        } catch (ExecutionException e) {
+            log.error("",e);
+            throw e;
+        }finally {
+            pool.returnConnectoin(connection);
+        }
     }
 
     @Override
@@ -39,10 +50,13 @@ public class BinaryClient implements Client<byte[]> {
         try{
             connection = pool.getConnection();
             connection.sendTask(new Task(new PutCommand(key,value),connection));
+            System.out.println("done in put");
         } catch (TimeoutException e) {
             log.error("",e);
+            throw e;
         } catch (ExecutionException e) {
             log.error("",e);
+            throw e;
         }finally {
             pool.returnConnectoin(connection);
         }

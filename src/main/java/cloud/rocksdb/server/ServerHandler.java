@@ -14,41 +14,32 @@ import java.util.Map;
 public class ServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        System.out.println("channelRead");
         Command command = (Command)msg;
         switch (command.getType()){
             case GET:
                 byte[] ret = RocksDBHolder.getInstance().getResource().get(((GetCommand)command).content);
-                ctx.write(new GetResponse(ret));
+                ctx.writeAndFlush(new GetResponse(ret));
                 break;
             case PUT:
                 PutCommand cmd = (PutCommand) command;
                 RocksDBHolder.getInstance().getResource().put(cmd.getKey(),cmd.getValue());
-                ctx.write(new Response() {
-                    @Override
-                    public COMMAND_TYPE getType() {
-                        return Command.COMMAND_TYPE.PUT_RESPONSE;
-                    }
-                });
+                ctx.writeAndFlush(new PutResponse());
                 break;
             case MULTIGET:
                 MultiGetCommand multiGetCommand = (MultiGetCommand)command;
                 Map<byte[], byte[]> val = RocksDBHolder.getInstance().getResource().multiGet(Lists.newArrayList(multiGetCommand.getKeys()));
-                ctx.write(new MultiGetResponse(val));
+                ctx.writeAndFlush(new MultiGetResponse(val));
                 break;
             case DELETE:
                 DeleteCommand deleteCommand = (DeleteCommand)command;
                 RocksDBHolder.getInstance().getResource().delete(deleteCommand.content);
-                ctx.write(new Response() {
-                    @Override
-                    public COMMAND_TYPE getType() {
-                        return COMMAND_TYPE.DELETE_RESPONSE;
-                    }
-                });
+                ctx.writeAndFlush(new DeleteResponse());
                 break;
             case GET_LATEST_SEQ:
                 GetLatestSequenceNumCommand getLatestSequenceNumCommand = (GetLatestSequenceNumCommand)command;
                 long seq = RocksDBHolder.getInstance().getResource().getLatestSequenceNumber();
-                ctx.write(new GetLatestSequenceNumResponse(seq));
+                ctx.writeAndFlush(new GetLatestSequenceNumResponse(seq));
                 break;
             case GET_RESPONSE:
                 break;
@@ -57,7 +48,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
             case EXIST:
                 ExistCommand existCommand = (ExistCommand)command;
                 boolean exist = RocksDBHolder.getInstance().getResource().keyMayExist(existCommand.content,null);
-                ctx.write(new ExistResponse(exist));
+                ctx.writeAndFlush(new ExistResponse(exist));
                 break;
             default:
         }

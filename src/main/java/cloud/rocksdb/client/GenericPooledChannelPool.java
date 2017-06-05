@@ -8,34 +8,46 @@ import io.netty.channel.pool.SimpleChannelPool;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import org.apache.commons.pool2.impl.GenericObjectPool;
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Created by fafu on 2017/5/31.
  */
+@Deprecated
 public class GenericPooledChannelPool extends SimpleChannelPool {
     private static final Logger log = LoggerFactory.getLogger(GenericPooledChannelPool.class);
     private GenericObjectPool<Future<Channel>> pool ;
-    public GenericPooledChannelPool(Bootstrap bootstrap, ChannelPoolHandler handler, GenericObjectPoolConfig config) {
+
+    public GenericPooledChannelPool(Bootstrap bootstrap, ChannelPoolHandler handler) {
         super(bootstrap, handler);
-        this.pool = new GenericObjectPool(new PooledConnectionFactory(GenericPooledChannelPool.super::acquire,
-                ChannelHealthChecker.ACTIVE),config);
     }
 
-    public GenericPooledChannelPool(Bootstrap bootstrap, ChannelPoolHandler handler, ChannelHealthChecker healthCheck, GenericObjectPoolConfig config) {
+    public GenericPooledChannelPool(Bootstrap bootstrap, ChannelPoolHandler handler, ChannelHealthChecker healthCheck) {
         super(bootstrap, handler, healthCheck);
-        this.pool = new GenericObjectPool(new PooledConnectionFactory(GenericPooledChannelPool.super::acquire,
-                healthCheck),config);
-
     }
 
-    public GenericPooledChannelPool(Bootstrap bootstrap, ChannelPoolHandler handler, ChannelHealthChecker healthCheck, boolean releaseHealthCheck, GenericObjectPoolConfig config) {
+    public GenericPooledChannelPool(Bootstrap bootstrap, ChannelPoolHandler handler, ChannelHealthChecker healthCheck, boolean releaseHealthCheck) {
         super(bootstrap, handler, healthCheck, releaseHealthCheck);
-        this.pool = new GenericObjectPool(new PooledConnectionFactory(GenericPooledChannelPool.super::acquire,
-                healthCheck),config);
     }
+//    public GenericPooledChannelPool(Bootstrap bootstrap, ChannelPoolHandler handler, GenericObjectPoolConfig config) {
+//        super(bootstrap, handler);
+//        this.pool = new GenericObjectPool(new PooledConnectionFactory(GenericPooledChannelPool.super::acquire,
+//                ChannelHealthChecker.ACTIVE),config);
+//    }
+//
+//    public GenericPooledChannelPool(Bootstrap bootstrap, ChannelPoolHandler handler, ChannelHealthChecker healthCheck, GenericObjectPoolConfig config) {
+//        super(bootstrap, handler, healthCheck);
+//        this.pool = new GenericObjectPool(new PooledConnectionFactory(GenericPooledChannelPool.super::acquire,
+//                healthCheck),config);
+//
+//    }
+//
+//    public GenericPooledChannelPool(Bootstrap bootstrap, ChannelPoolHandler handler, ChannelHealthChecker healthCheck, boolean releaseHealthCheck, GenericObjectPoolConfig config) {
+//        super(bootstrap, handler, healthCheck, releaseHealthCheck);
+//        this.pool = new GenericObjectPool(new PooledConnectionFactory(GenericPooledChannelPool.super::acquire,
+//                healthCheck),config);
+//    }
 
 
     @Override

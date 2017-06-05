@@ -37,13 +37,23 @@ public class TaskFuture<R extends Command> implements Future<Response<?>> {
 
     @Override
     public Response<?> get() throws InterruptedException, ExecutionException {
-        task.getCondition().await();
-        return task.getResponse();
+        try{
+            task.getLock().lock();
+            task.getCondition().await();
+            return task.getResponse();
+        }finally {
+            task.getLock().unlock();
+        }
     }
 
     @Override
     public Response<?> get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        task.getCondition().await(timeout,unit);
-        return task.getResponse();
+        try{
+            task.getLock().lock();
+            task.getCondition().await(timeout,unit);
+            return task.getResponse();
+        }finally {
+            task.getLock().unlock();
+        }
     }
 }

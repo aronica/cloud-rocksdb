@@ -13,6 +13,7 @@ import java.util.List;
 public class ReplicatorDecoder extends ByteToMessageDecoder {
 
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+//        in.markReaderIndex();
         int len = in.readInt();
         byte command = in.readByte();
         if(command == Command.COMMAND_TYPE.GET.getVal()){
@@ -27,7 +28,13 @@ public class ReplicatorDecoder extends ByteToMessageDecoder {
             out.add(new MultiGetCommand().read(in));
         }else if((command == Command.COMMAND_TYPE.GET_LATEST_SEQ.getVal())){
             out.add(new GetLatestSequenceNumCommand().read(in));
-        }else{
+        }else if(command == Command.COMMAND_TYPE.PUT_RESPONSE.getVal()){
+            out.add(new PutResponse().read(in));
+        }else if(command == Command.COMMAND_TYPE.GET_RESPONSE.getVal()) {
+            out.add(new GetResponse().read(in));
+        }else if(command == Command.COMMAND_TYPE.GET_LATEST_SEQ_RESPONSE.getVal()){
+            out.add(new GetLatestSequenceNumResponse().read(in));
+        } else{
             throw new RuntimeException("Unknown command found.");
         }
     }

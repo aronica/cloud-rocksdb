@@ -1,8 +1,8 @@
 package cloud.rocksdb.client;
 
 import cloud.rocksdb.command.Command;
-import lombok.Data;
 import cloud.rocksdb.command.Response;
+import lombok.Data;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;

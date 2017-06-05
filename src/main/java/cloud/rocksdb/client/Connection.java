@@ -1,10 +1,11 @@
 package cloud.rocksdb.client;
 
 
+import cloud.rocksdb.command.Response;
 import io.netty.channel.Channel;
+import io.netty.util.Attribute;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import cloud.rocksdb.command.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,9 +42,12 @@ public class Connection{
             task.setCondition(condition);
             task.setLock(lock);
             int seq = task.getRequest().getSeq();
-            channel.writeAndFlush(task.getRequest());
+            channel.writeAndFlush(task.getRequest()).sync();
+            Attribute<TaskFuture> attr = channel.attr(ConnectionPool.NETTY_CHANNEL_KEY);
             future = new TaskFuture<Response<?>>(task);
-            taskMap.put(seq,future);
+            attr.set(future);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         } finally {
             lock.unlock();
         }

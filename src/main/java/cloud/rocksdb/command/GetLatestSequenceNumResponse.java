@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GetLatestSequenceNumResponse extends Response<Long> {
 
-    private long seq;
+    private long sequence;
 
-    public GetLatestSequenceNumResponse(long seq) {
-        this.seq = seq;
+    public GetLatestSequenceNumResponse(long sequence) {
+        this.sequence = sequence;
     }
 
     public COMMAND_TYPE getType() {
@@ -22,13 +22,13 @@ public class GetLatestSequenceNumResponse extends Response<Long> {
     @Override
     public void writeBody(ByteBuf out) {
         super.writeBody(out);
-        out.writeLong(seq);
+        out.writeLong(sequence);
     }
 
     @Override
     protected Command readBody(ByteBuf out) {
         super.readBody(out);
-        this.seq = out.readLong();
+        this.sequence = out.readLong();
         return this;
     }
 
@@ -39,6 +39,6 @@ public class GetLatestSequenceNumResponse extends Response<Long> {
 
     @Override
     public Long getResult() {
-        return seq;
+        return sequence;
     }
 }
