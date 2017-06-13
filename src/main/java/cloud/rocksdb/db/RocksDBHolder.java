@@ -1,11 +1,13 @@
-package cloud.rocksdb;
+package cloud.rocksdb.db;
 
 
+import cloud.rocksdb.BaseConfig;
 import org.rocksdb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.BitSet;
 
 /**
  * RocksDB客户端
@@ -15,7 +17,7 @@ import java.io.File;
  * @Date : 2017/3/2
  *
  */
-public class RocksDBHolder {
+public class RocksDBHolder implements Lifecycle{
     private static final Logger LOG = LoggerFactory.getLogger(RocksDBHolder.class);
 
     private static final String HUSKAR_ROCKSDB_DATA_FILE = "rocksdb_data_file";
@@ -31,10 +33,6 @@ public class RocksDBHolder {
     private static final int MAX_ROCKSDB_BLOCK_CACHE_SIZE = 40;
     private static final long CACHE_SIZE_UNIT = 1024 * 1024 * 1024L; // GB
 
-    private static int requestCount = 0;
-    private static int hitCount = 0;
-    private static int dbsize = 0;
-
     private int blockCacheSize;
     private int blockCacheCompressedSize;
 
@@ -42,11 +40,14 @@ public class RocksDBHolder {
     private Options options;
     private ReadOptions readOptions;
     private Filter bloomFilter;
+    private File lock ;
+    private String id;
 
-    private RocksDBHolder() {
-        RocksDB.loadLibrary();
-        initConfig();
-        openRocksDB();
+    private BitSet slot = new BitSet(16383);
+
+    public RocksDBHolder(String id) throws InstanceAlreadyRunningException {
+        this.id = id;
+
     }
 
     public RocksDB getResource() {
@@ -63,42 +64,26 @@ public class RocksDBHolder {
     public void flushDB() {
         closeRocksDB();
         openRocksDB();
-        resetDBsize();
         return ;
     }
 
-
-    public synchronized void addHitCount() {
-        hitCount++;
+    public void getLock() throws InstanceAlreadyRunningException {
+        File lockDir = new File(ROCKSDB_WAL_DATA_PATH+File.separator+id);
+        boolean ret = lockDir.mkdirs();
+        if(!ret){
+            throw new InstanceAlreadyRunningException("Rocksdb instance with id {} is running.");
+        }
     }
 
-    public synchronized void addHitCount(int count) {
-        hitCount += count;
+    public void cleanLock(){
+        File lockDir = new File(ROCKSDB_WAL_DATA_PATH+File.separator+id);
+        try {
+            lockDir.delete();
+        }catch (Exception e){
+            LOG.error("Failed to clean lock, you may need clean it handy next time.");
+        }
     }
 
-    public synchronized void addRequestCount() {
-        requestCount++;
-    }
-
-    public synchronized void addRequestCount(int count) {
-        requestCount += count;
-    }
-
-    public synchronized double getHitRate() {
-        return hitCount * 1.0 / requestCount;
-    }
-
-    public synchronized void addDBsize() {
-        dbsize++;
-    }
-
-    public synchronized void addDBsize(int count) {
-        dbsize += count;
-    }
-
-    public synchronized void resetDBsize() {
-        dbsize = 0;
-    }
 
     private void setBlockCacheSize() {
         int cacheSize = 10;
@@ -191,16 +176,21 @@ public class RocksDBHolder {
             rocksDB.close();
             rocksDB = null;
         }
+        cleanLock();
         LOG.info("--> Close RocksDB OK");
         return ;
     }
 
-    public static final RocksDBHolder getInstance(){
-        return RocksDBClientLoader.client;
+    @Override
+    public void init() throws InstanceAlreadyRunningException {
+        getLock();
+        RocksDB.loadLibrary();
+        initConfig();
+        openRocksDB();
     }
 
-    private static class RocksDBClientLoader{
-        protected static RocksDBHolder client =  new RocksDBHolder();
+    @Override
+    public void destroy() throws Exception {
+        closeRocksDB();
     }
-
 }

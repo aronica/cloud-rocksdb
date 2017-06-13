@@ -55,7 +55,10 @@ public abstract class Command {
         DELETE_RESPONSE((byte)22),
         EXIST_RESPONSE((byte)23),
         MULTIGET_RESPONSE((byte)24),
-        GET_LATEST_SEQ_RESPONSE((byte)25);
+        GET_LATEST_SEQ_RESPONSE((byte)25),
+
+
+        EXCEPTION_RESPONSE((byte)127);
 
         private byte val;
         COMMAND_TYPE(byte val) {
@@ -66,6 +69,10 @@ public abstract class Command {
     }
 
     public abstract int length();
+
+    public int size(){
+        return length()+5;
+    }
 
     public static byte[] readIntHeadContent(ByteBuf buf){
         if(buf == null||buf.readableBytes()<4){
@@ -84,6 +91,35 @@ public abstract class Command {
         buf.writeInt(content.length);
         buf.writeBytes(content);
         return content.length;
+    }
+    
+    
+    public static Command get(ByteBuf in){
+        int len = in.readInt();
+        byte command = in.readByte();
+        if(command == Command.COMMAND_TYPE.GET.getVal()){
+            return new GetCommand().read(in);
+        }else if(command == Command.COMMAND_TYPE.DELETE.getVal()){
+            return new DeleteCommand().read(in);
+        }else if(command == Command.COMMAND_TYPE.PUT.getVal()){
+            return new PutCommand().read(in);
+        }else if(command == Command.COMMAND_TYPE.EXIST.getVal()){
+            return new ExistCommand().read(in);
+        }else if(command == Command.COMMAND_TYPE.MULTIGET.getVal()) {
+            return new MultiGetCommand().read(in);
+        }else if((command == Command.COMMAND_TYPE.GET_LATEST_SEQ.getVal())){
+            return new GetLatestSequenceNumCommand().read(in);
+        }else if(command == Command.COMMAND_TYPE.PUT_RESPONSE.getVal()){
+            return new PutResponse().read(in);
+        }else if(command == Command.COMMAND_TYPE.GET_RESPONSE.getVal()) {
+            return new GetResponse().read(in);
+        }else if(command == Command.COMMAND_TYPE.GET_LATEST_SEQ_RESPONSE.getVal()) {
+            return new GetLatestSequenceNumResponse().read(in);
+        }else if(command == COMMAND_TYPE.EXCEPTION_RESPONSE.getVal()){
+            return new ExceptionResponse().read(in);
+        } else{
+            throw new RuntimeException("Unknown command found.");
+        }
     }
 
 }

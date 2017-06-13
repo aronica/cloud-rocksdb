@@ -2,6 +2,8 @@ package cloud.rocksdb.server;
 
 import cloud.rocksdb.ReplicatorDecoder;
 import cloud.rocksdb.ReplicatorEncoder;
+import cloud.rocksdb.db.InstanceAlreadyRunningException;
+import cloud.rocksdb.db.RocksDBHolder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -11,6 +13,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import org.rocksdb.RocksDBException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
@@ -19,8 +23,24 @@ import java.net.InetSocketAddress;
  * Created by fafu on 2017/5/30.
  */
 public class Server {
+    private static final Logger log = LoggerFactory.getLogger(Server.class);
+    private String id;
+    private RocksDBHolder rocksDBHolder;
 
-    public static void main(String[] args) throws UnsupportedEncodingException, RocksDBException {
+    public Server(String id){
+        this.id = id;
+    }
+
+    public void initConfig(){
+
+    }
+
+    public void initStorage() throws InstanceAlreadyRunningException {
+        RocksDBHolder holder = new RocksDBHolder(id);
+        this.rocksDBHolder = holder;
+    }
+
+    public void initServingConnect() throws UnsupportedEncodingException, RocksDBException {
         EventLoopGroup eventLoop = new NioEventLoopGroup();
         try{
             ServerBootstrap bootstrap = new ServerBootstrap();

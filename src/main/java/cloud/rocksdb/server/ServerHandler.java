@@ -4,7 +4,7 @@ import cloud.rocksdb.command.*;
 import com.google.common.collect.Lists;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import cloud.rocksdb.RocksDBHolder;
+import cloud.rocksdb.db.RocksDBHolder;
 
 import java.util.Map;
 
