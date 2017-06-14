@@ -1,0 +1,14 @@
+rocksdb:
+  data_dir: /data/rocksdb/data
+  wal_dir: /data/rocksdb/wal
+  options:
+    max_background_compaction: 4
+    max_background_flushes: 2
+    rocksdb_block_cache_size:
+    max_open_files: 1024
+    block_size: 8421376
+    write_buffer_size: 512MB
+    max_write_buffer_number: 5
+    min_write_buffer_number_to_merge: 2
+
+
