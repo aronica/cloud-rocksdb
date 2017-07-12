@@ -1,6 +1,6 @@
 package cloud.rocksdb.server.client;
 
-import cloud.rocksdb.server.command.*;
+import cloud.rocksdb.server.client.command.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

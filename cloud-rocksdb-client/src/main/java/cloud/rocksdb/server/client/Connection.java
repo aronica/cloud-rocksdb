@@ -1,7 +1,8 @@
 package cloud.rocksdb.server.client;
 
-import cloud.rocksdb.server.command.Command;
-import cloud.rocksdb.server.command.Response;
+
+import cloud.rocksdb.server.client.command.Command;
+import cloud.rocksdb.server.client.command.Response;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

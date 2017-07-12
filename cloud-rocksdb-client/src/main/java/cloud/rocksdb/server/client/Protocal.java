@@ -1,6 +1,6 @@
 package cloud.rocksdb.server.client;
 
-import cloud.rocksdb.server.command.Command;
+import cloud.rocksdb.server.client.command.Command;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
