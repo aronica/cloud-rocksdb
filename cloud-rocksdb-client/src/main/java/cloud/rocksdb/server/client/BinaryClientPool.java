@@ -14,12 +14,18 @@ public class BinaryClientPool extends Pool<BinaryClient> {
     }
 
     public BinaryClientPool(GenericObjectPoolConfig poolConfig, String host, int port) {
-        super(poolConfig, new BinaryClientPooledObjectFactory());
+        super(poolConfig, new BinaryClientPooledObjectFactory(host, port));
     }
 
     private static class BinaryClientPooledObjectFactory implements PooledObjectFactory<BinaryClient>{
         private String host;
         private int port;
+
+        public BinaryClientPooledObjectFactory(String host,int port){
+            this.host = host;
+            this.port = port;
+        }
+
         @Override
         public PooledObject<BinaryClient> makeObject() throws Exception {
             return new DefaultPooledObject<>(new BinaryClient(host,port));

@@ -24,7 +24,7 @@ public class Connection implements AutoCloseable {
     private BufferedInputStream inputStream;
     private BufferedOutputStream outputStream;
     private int connectionTimeout = 3000;
-    private int soTimeout = 2000;
+    private int soTimeout = 20000;
     private boolean broken = false;
 
     private static final String HOST_DEFAULT = "127.0.0.1";

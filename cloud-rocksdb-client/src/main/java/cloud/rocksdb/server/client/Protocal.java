@@ -19,7 +19,7 @@ public class Protocal {
         buf.markReaderIndex();
         int length = buf.readInt();
         buf.resetReaderIndex();
-        buf.writeBytes(in,length-4);
+        buf.writeBytes(in,length);
         return Command.get(buf);
     }
 

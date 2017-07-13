@@ -4,6 +4,7 @@ import cloud.rocksdb.server.AbstractServer;
 import cloud.rocksdb.server.ReplicatorDecoder;
 import cloud.rocksdb.server.ReplicatorEncoder;
 import cloud.rocksdb.server.config.Configuration;
+import cloud.rocksdb.server.util.ShutdownHookManager;
 import com.google.common.collect.Maps;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -18,10 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -31,10 +29,15 @@ import java.util.stream.Collectors;
 public class MasterServer extends AbstractServer {
     private static final Logger log = LoggerFactory.getLogger(MasterServer.class);
     private ServiceDiscover serviceDiscovery;
-    private List<String> shardIdList;
+    private List<String> shardIdList = Arrays.asList("1");
     private Map<String,Map<String,DataServerNode>> serverNodeMap ;
     private EventLoopGroup eventLoopGroup;
     private ServerBootstrap bootstrap;
+
+    @Override
+    protected int doGetPort() {
+        return config.getMasterPort();
+    }
 
     public MasterServer(Configuration config){
         super(config);
@@ -83,7 +86,15 @@ public class MasterServer extends AbstractServer {
 
 
     public DataServerNode of(ServiceInstance<Container> serviceInstance){
-        return new DataServerNode(config,serviceInstance);
+        DataServerNode node =  new DataServerNode(config,serviceInstance);
+        try {
+            node.init();
+            node.startup();
+            return node;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 
@@ -112,7 +123,18 @@ public class MasterServer extends AbstractServer {
         });
     }
 
+    public static void main(String[] args) throws Exception {
+        Configuration config = new Configuration();
 
-
-
+        MasterServer masterServer = new MasterServer(config);
+        masterServer.init();
+        masterServer.startup();
+        ShutdownHookManager.get().addShutdownHook(()->{
+            try {
+                masterServer.shutdown();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        },3);
+    }
 }

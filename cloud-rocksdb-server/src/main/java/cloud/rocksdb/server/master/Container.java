@@ -28,9 +28,6 @@ public class Container  {
         this.shardId = shardId;
     }
 
-    public String getContainerKey() {
-        return host + ":" + port;
-    }
 
     @Override
     public boolean equals(Object o) {

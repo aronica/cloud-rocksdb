@@ -1,6 +1,11 @@
 package cloud.rocksdb.server.config;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -24,10 +29,10 @@ public class Configuration {
     public static final String ZK_SHARD_ROOT_DEF = "shard";
     public static final String ZK_SHARD_ROOT_KEY = "zk.instance.path";
 
-    private Properties properties;
+    private Map<String,String> properties;
 
     public Configuration(){
-        properties = new Properties();
+        properties = new HashMap<>();
     }
 
     public Configuration(File file) throws IOException {
@@ -35,7 +40,7 @@ public class Configuration {
     }
 
     public Configuration(InputStream in) throws IOException {
-        properties = new Properties();
+        Properties properties = new Properties();
         try {
             properties.load(in);
         } catch (IOException e) {
@@ -52,39 +57,43 @@ public class Configuration {
     }
 
     public String getZkRoot(){
-        return properties.getProperty(ZK_ROOT_KEY,ZK_ROOT_DEF);
+        return properties.getOrDefault(ZK_ROOT_KEY,ZK_ROOT_DEF);
     }
 
     public String getZkLeaderPathDir(){
-        return getZkRoot() + "/" + properties.getProperty(ZK_LEADER_LATCH_DIR_KEY,ZK_LEADER_LATCH_DIR_DEF);
+        return getZkRoot() + "/" + properties.getOrDefault(ZK_LEADER_LATCH_DIR_KEY,ZK_LEADER_LATCH_DIR_DEF);
     }
 
     public String getZkInstanceRoot(){
-        return getZkRoot() + "/" + properties.getProperty(ZK_INSTANCE_ROOT_KEY,ZK_INSTANCE_ROOT_DEF);
+        return getZkRoot() + "/" + properties.getOrDefault(ZK_INSTANCE_ROOT_KEY,ZK_INSTANCE_ROOT_DEF);
     }
 
     public String getUpdateStategy(){
-        return "QUONRUM";
+        return "QUORUM";
     }
 
-    public int getPort(){
-        return Integer.valueOf(properties.getProperty("server.tcp.port","8000"));
+    public int getDataPort(){
+        return Integer.valueOf(properties.getOrDefault("server.data.tcp.port","8000"));
+    }
+
+    public int getMasterPort(){
+        return Integer.valueOf(properties.getOrDefault("server.server.tcp.port","9000"));
     }
 
     public int getInstanceConcurrency(){
-        return Integer.valueOf(properties.getProperty("server.worker.thread.num","4"));
+        return Integer.valueOf(properties.getOrDefault("server.worker.thread.num","4"));
     }
 
     public int getRequestMaxBodyLength(){
-        return Integer.valueOf(properties.getProperty("server.tcp.request.max_body_length",String.valueOf(1024*1024*5)));
+        return Integer.valueOf(properties.getOrDefault("server.tcp.request.max_body_length",String.valueOf(1024*1024*5)));
     }
 
     public String getZkServiceDiscoveryPath(){
-        return getZkRoot() + "/" + properties.getProperty(ZK_SHARD_ROOT_KEY,ZK_SHARD_ROOT_DEF) + "/" + "service";
+        return getZkRoot() + "/" + properties.getOrDefault(ZK_SHARD_ROOT_KEY,ZK_SHARD_ROOT_DEF) + "/" + "service";
     }
 
     public String getZkShardRoot(String shardId){
-        return getZkRoot() + "/" + properties.getProperty(ZK_SHARD_ROOT_KEY,ZK_SHARD_ROOT_DEF)+"/"+shardId;
+        return getZkRoot() + "/" + properties.getOrDefault(ZK_SHARD_ROOT_KEY,ZK_SHARD_ROOT_DEF)+"/"+shardId;
     }
 
     public String getZkShardChildren(String shardId,String child){
@@ -92,22 +101,22 @@ public class Configuration {
     }
 
     public String get(String key){
-        return properties.getProperty(key);
+        return properties.get(key);
     }
 
     public String getZookeeperHost(){
-        return properties.getProperty("cluster.zookeeper.host","127.0.0.1");
+        return properties.getOrDefault("cluster.zookeeper.host","127.0.0.1");
     }
 
     public int getMasterDataMaxTotal(){
-        return Integer.valueOf(properties.getProperty("cluster.master.data.maxTotal","4"));
+        return Integer.valueOf(properties.getOrDefault("cluster.master.data.maxTotal","4"));
     }
 
     public int getMasterDataMaxIdle(){
-        return Integer.valueOf(properties.getProperty("cluster.master.data.maxIdle","4"));
+        return Integer.valueOf(properties.getOrDefault("cluster.master.data.maxIdle","4"));
     }
 
     public int getMasterDataMinIdle(){
-        return Integer.valueOf(properties.getProperty("cluster.master.data.minIdle","2"));
+        return Integer.valueOf(properties.getOrDefault("cluster.master.data.minIdle","2"));
     }
 }

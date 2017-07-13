@@ -67,7 +67,7 @@ public class DataServer extends AbstractServer {
                     });
 
             ChannelFuture future = bootstrap.bind().sync();
-            future.channel().closeFuture().sync();
+//            future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             log.error("", e);
             throw e;
@@ -87,6 +87,10 @@ public class DataServer extends AbstractServer {
     }
 
 
+    @Override
+    protected int doGetPort() {
+        return config.getDataPort();
+    }
 
     @Override
     public void doInit() throws Exception {
@@ -103,6 +107,7 @@ public class DataServer extends AbstractServer {
 
     @Override
     public void doShutdown() throws Exception {
+        System.out.println("shutdown===================================");
         try {
             eventLoopGroup.shutdownGracefully(10, 10, TimeUnit.SECONDS);
             Thread.sleep(10000);
@@ -123,7 +128,7 @@ public class DataServer extends AbstractServer {
             dataServer.startup();
             Scanner scanner = new Scanner(System.in);
             if("quit".equals(scanner.nextLine())){
-                dataServer.clone();
+                dataServer.shutdown();
             }
             System.exit(0);
         }catch (Exception e){

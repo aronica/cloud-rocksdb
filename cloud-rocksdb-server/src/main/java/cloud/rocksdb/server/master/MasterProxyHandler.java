@@ -25,7 +25,7 @@ public class MasterProxyHandler extends ChannelInboundHandlerAdapter {
     private List<DataServerNode> servers;
     public MasterProxyHandler(Map<String, Map<String, DataServerNode>> serverNodeMap) {
         this.serverNodeMap = serverNodeMap;
-        servers = new ArrayList<>(serverNodeMap.values());
+        servers = new ArrayList(serverNodeMap.get("1").values());
     }
 
     @Override

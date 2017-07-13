@@ -17,13 +17,14 @@ public abstract class AbstractServer implements LifeCycle {
     protected Configuration config;
 
     private void initContainer() {
-        this.host = NetworkInterfaceHelper.INSTANCE.getLocalHostName();
-        this.port = config.getPort();
+        this.host = NetworkInterfaceHelper.INSTANCE.getLocalHostAddress();
+        this.port = doGetPort();
     }
+
+    protected abstract int doGetPort();
 
     public AbstractServer(Configuration config){
         this.config = config;
-        this.port = config.getPort();
     }
 
     private void initZookeeper() {

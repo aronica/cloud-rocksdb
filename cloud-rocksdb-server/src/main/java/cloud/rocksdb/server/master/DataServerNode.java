@@ -26,6 +26,7 @@ public class DataServerNode implements LifeCycle, Client<byte[]>,AutoCloseable{
 
     public DataServerNode(Configuration config, ServiceInstance<Container> instance) {
         this.config = config;
+        this.instance = instance;
     }
 
     @Override
@@ -51,51 +52,111 @@ public class DataServerNode implements LifeCycle, Client<byte[]>,AutoCloseable{
 
     @Override
     public byte[] get(byte[] key) throws Exception {
-        try(BinaryClient client = pool.getResource()){
+        BinaryClient client = null;
+        boolean broken = false;
+        try{
+             client = pool.getResource();
             return client.get(key);
         }catch (Exception e){
             logger.error("",e);
+            broken = true;
             throw e;
+        }finally {
+            if(client != null){
+                if(!broken){
+                    pool.returnResource(client);
+                }else{
+                    pool.returnBrokenResource(client);
+                }
+            }
         }
     }
 
     @Override
     public void put(byte[] key, byte[] value) throws Exception {
-        try(BinaryClient client = pool.getResource()){
+        BinaryClient client = null;
+        boolean broken = false;
+        try{
+            client = pool.getResource();
             client.put(key,value);
         }catch (Exception e){
             logger.error("",e);
+            broken = true;
             throw e;
+        }finally {
+            if(client != null){
+                if(!broken){
+                    pool.returnResource(client);
+                }else{
+                    pool.returnBrokenResource(client);
+                }
+            }
         }
     }
 
     @Override
     public Map<? extends byte[], ? extends byte[]> multiGet(List<? extends byte[]> keys) throws Exception {
-        try(BinaryClient client = pool.getResource()){
+        BinaryClient client = null;
+        boolean broken = false;
+        try{
+            client = pool.getResource();
             return client.multiGet(keys);
         }catch (Exception e){
             logger.error("",e);
+            broken = true;
             throw e;
+        }finally {
+            if(client != null){
+                if(!broken){
+                    pool.returnResource(client);
+                }else{
+                    pool.returnBrokenResource(client);
+                }
+            }
         }
     }
 
     @Override
     public boolean exist(byte[] key) throws Exception {
-        try(BinaryClient client = pool.getResource()){
+        BinaryClient client = null;
+        boolean broken = false;
+        try{
+            client = pool.getResource();
             return client.exist(key);
         }catch (Exception e){
             logger.error("",e);
+            broken = true;
             throw e;
+        }finally {
+            if(client != null){
+                if(!broken){
+                    pool.returnResource(client);
+                }else{
+                    pool.returnBrokenResource(client);
+                }
+            }
         }
     }
 
     @Override
     public long getLatestSequenceNum() throws Exception {
-        try(BinaryClient client = pool.getResource()){
+        BinaryClient client = null;
+        boolean broken = false;
+        try{
+            client = pool.getResource();
             return client.getLatestSequenceNum();
         }catch (Exception e){
             logger.error("",e);
+            broken = true;
             throw e;
+        }finally {
+            if(client != null){
+                if(!broken){
+                    pool.returnResource(client);
+                }else{
+                    pool.returnBrokenResource(client);
+                }
+            }
         }
     }
 

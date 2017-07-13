@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 public abstract class MultiFieldCommand extends Command{
     protected byte[][] content;
-    private int length = -1;
+    private int length = 0;
 
     public MultiFieldCommand(byte[]...content){
         this.content = content;
@@ -20,7 +20,7 @@ public abstract class MultiFieldCommand extends Command{
 
     public int length(){
         if(content == null||content.length == 0)return 0;
-        if(length>-1){
+        if(length>0){
             return length;
         }
         int len = 0;
@@ -33,7 +33,7 @@ public abstract class MultiFieldCommand extends Command{
 
     public void writeBody(ByteBuf out) {
         for(byte[] con:content){
-            length += super.writeIntHeadContent(con,out);
+            super.writeIntHeadContent(con,out);
         }
     }
     @Override
