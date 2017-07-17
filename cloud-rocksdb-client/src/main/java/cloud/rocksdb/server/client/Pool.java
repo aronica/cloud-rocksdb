@@ -54,7 +54,6 @@ public class Pool<T> implements Closeable{
         }
     }
 
-    @Deprecated
     public void returnResourceObject(final T resource) {
         if (resource == null) {
             return;
@@ -66,13 +65,11 @@ public class Pool<T> implements Closeable{
         }
     }
 
-    @Deprecated
     public void returnBrokenResource(final T resource) {
         if (resource != null) {
             returnBrokenResourceObject(resource);
         }
     }
-    @Deprecated
     public void returnResource(final T resource) {
         if (resource != null) {
             returnResourceObject(resource);

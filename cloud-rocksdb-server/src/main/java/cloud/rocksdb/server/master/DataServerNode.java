@@ -139,6 +139,28 @@ public class DataServerNode implements LifeCycle, Client<byte[]>,AutoCloseable{
     }
 
     @Override
+    public boolean delete(byte[] key) throws Exception {
+        BinaryClient client = null;
+        boolean broken = false;
+        try{
+            client = pool.getResource();
+            return client.delete(key);
+        }catch (Exception e){
+            logger.error("",e);
+            broken = true;
+            throw e;
+        }finally {
+            if(client != null){
+                if(!broken){
+                    pool.returnResource(client);
+                }else{
+                    pool.returnBrokenResource(client);
+                }
+            }
+        }
+    }
+
+    @Override
     public long getLatestSequenceNum() throws Exception {
         BinaryClient client = null;
         boolean broken = false;

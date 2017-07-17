@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
  * Created by fafu on 2017/5/30.
@@ -21,6 +23,11 @@ public class MasterProxyHandler extends ChannelInboundHandlerAdapter {
 
     private Map<String,Map<String,DataServerNode>> serverNodeMap;
     private AtomicInteger inc = new AtomicInteger(0);
+    private ExecutorService executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors()*2,
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>(1000000),(r)->{
+        return new Thread(r,"ProxyWorkerThread");
+    },new ThreadPoolExecutor.AbortPolicy());
     //todo
     private List<DataServerNode> servers;
     public MasterProxyHandler(Map<String, Map<String, DataServerNode>> serverNodeMap) {
@@ -34,37 +41,68 @@ public class MasterProxyHandler extends ChannelInboundHandlerAdapter {
         switch (command.getType()){
             case GET:
                 byte[] res = servers.get(inc.getAndIncrement()%servers.size()).get(((GetCommand)command).getKey());
-                ctx.write(new GetResponse(res));
+                ctx.writeAndFlush(new GetResponse(res));
+                break;
             case PUT:
                 //todo 1. Change to parallel call. 2. Add return strategy,for example ,ONE/ALL/QUORUM
                 PutCommand putCommand = ((PutCommand)command);
-                servers.forEach(server->{
-                    try {
+                doExecute((server)->{
+                    try{
                         server.put(putCommand.getKey(),putCommand.getValue());
-                        ctx.write(new PutResponse());
-                    } catch (Exception e) {
+                    }catch (Exception e){
                         e.printStackTrace();
                         //todo
-
                     }
-                });
+                },putCommand);
+                ctx.writeAndFlush(new PutResponse());
                 break;
             case MULTIGET:
                 MultiGetCommand multiGetCommand = (MultiGetCommand)command;
                 Map<? extends byte[], ? extends byte[]> ret = servers.get(inc.getAndIncrement()%servers.size()).multiGet(Arrays.asList(multiGetCommand.getKeys()));
-                ctx.write(new MultiGetResponse((Map<byte[], byte[]>) ret));
+                ctx.writeAndFlush(new MultiGetResponse((Map<byte[], byte[]>) ret));
+                break;
             case DELETE:
-                //TODO
+                DeleteCommand deleteCommand = (DeleteCommand)command;
+                doExecute((server)->{
+                    try {
+                        server.delete(deleteCommand.getKey());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        //todo
+                    }
+                },deleteCommand);
+                ctx.writeAndFlush(new DeleteResponse());
                 break;
             case GET_LATEST_SEQ:
                 //just break
                 break;
             case EXIST:
                 ExistCommand existCommand = (ExistCommand)command;
-                ctx.write(servers.get(inc.getAndIncrement()%servers.size()).exist(existCommand.getKey()));
+                ctx.writeAndFlush(servers.get(inc.getAndIncrement()%servers.size()).exist(existCommand.getKey()));
                 break;
             default:
         }
+    }
+
+    private void doExecute(Consumer<DataServerNode> commandConsumer,Command command) throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(servers.size());
+        List<Future<?>> futures = new ArrayList<>();
+        servers.forEach(server->{
+            futures.add(executor.submit(()->{
+                try {
+                    commandConsumer.accept(server);
+                    latch.countDown();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }));
+        });
+        latch.await(10, TimeUnit.MICROSECONDS);
+        futures.forEach(future->{
+            if(!future.isDone()){
+                future.cancel(true);
+            }
+        });
     }
 
     @Override

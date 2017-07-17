@@ -18,6 +18,8 @@ public interface Client<T> {
 
     public boolean exist(T key)throws Exception;
 
+    boolean delete(byte[] key) throws Exception;
+
     public long getLatestSequenceNum()throws Exception;
 
 }

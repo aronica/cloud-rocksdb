@@ -73,6 +73,20 @@ public class BinaryClient extends Connection implements Client<byte[]> ,AutoClos
         close();//close connection since invalid request.
         throw new RocksdbException("Invalid response.");
     }
+
+    @Override
+    public boolean delete(byte[] key) throws Exception {
+        sendCommand(new DeleteCommand(key));
+        command ++;
+        Response<?> response = readCommand();
+        command --;
+        if(response instanceof DeleteResponse){
+            return ((DeleteResponse)response).getResult();
+        }
+        close();//close connection since invalid request.
+        throw new RocksdbException("Invalid response.");
+    }
+
     @Override
     public long getLatestSequenceNum() throws Exception {
         sendCommand(new GetLatestSequenceNumCommand());
