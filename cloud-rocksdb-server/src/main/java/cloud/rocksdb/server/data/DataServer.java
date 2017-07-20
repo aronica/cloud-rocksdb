@@ -5,7 +5,9 @@ import cloud.rocksdb.server.ReplicatorDecoder;
 import cloud.rocksdb.server.ReplicatorEncoder;
 import cloud.rocksdb.server.config.Configuration;
 import cloud.rocksdb.server.db.RocksDBHolder;
-import cloud.rocksdb.server.master.Container;
+import cloud.rocksdb.server.state.ZooKeeperStateManager;
+import cloud.rocksdb.server.util.JacksonUtil;
+import cloud.rocksdb.server.zookeeper.ZKUtils;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -14,11 +16,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import org.apache.curator.x.discovery.ServiceDiscovery;
-import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
-import org.apache.curator.x.discovery.ServiceInstance;
-import org.apache.curator.x.discovery.UriSpec;
-import org.apache.curator.x.discovery.details.JsonInstanceSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +33,7 @@ public class DataServer extends AbstractServer {
     private EventLoopGroup eventLoopGroup;
     private ServerBootstrap bootstrap;
     private String shardId;
-    private ServiceDiscovery<Container> serviceDiscovery;
+    ZooKeeperStateManager manager;
 
     public DataServer(Configuration config, String shardId) {
         super(config);
@@ -76,14 +73,7 @@ public class DataServer extends AbstractServer {
 
     //register this to master
     private void register() throws Exception {
-        UriSpec spec = new UriSpec("{schema}://{address}:{port}");
-        ServiceInstance<Container> instance = ServiceInstance.<Container>builder().name(shardId).id(host+"_"+port).payload(new Container(shardId,host,port)).address(host).port(port).uriSpec(spec).build();
-        serviceDiscovery = ServiceDiscoveryBuilder
-                .builder(Container.class).client(curator)
-                .serializer(new JsonInstanceSerializer<Container>(Container.class))
-                .basePath(config.getZkServiceDiscoveryPath()).build();
-        serviceDiscovery.start();
-        serviceDiscovery.registerService(instance);
+        ZKUtils.createEphemeralPath(curator,config.getZkShardServiceInstancePath(shardId,host,port), JacksonUtil.toJsonAsBytes(new Container(host,port,shardId)));
     }
 
 
@@ -112,7 +102,7 @@ public class DataServer extends AbstractServer {
             eventLoopGroup.shutdownGracefully(10, 10, TimeUnit.SECONDS);
             Thread.sleep(10000);
             rocksDBHolder.shutdown();//强制shutdown
-            serviceDiscovery.close();
+//            serviceDiscovery.close();
             curator.close();
         } catch (Throwable throwable) {
             throwable.printStackTrace();

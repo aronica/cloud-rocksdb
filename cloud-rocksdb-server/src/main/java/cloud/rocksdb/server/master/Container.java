@@ -16,6 +16,7 @@ public class Container  {
     public String shardId;
     public long startup;
     public long lastModifyTime;
+    public int status = 1;
 
     public Container() {
     }

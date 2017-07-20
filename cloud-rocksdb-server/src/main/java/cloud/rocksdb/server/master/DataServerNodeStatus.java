@@ -1,14 +1,13 @@
 package cloud.rocksdb.server.master;
 
 /**
- * Created by fafu on 2017/7/11.
+ * Created by fafu on 2017/7/18.
  */
-public enum Status {
-    INIT(0),STARTING(1),STARTED(2),STOPPING(3),STOPPED(4),
-    UP(11),DOWN(12);
+public enum DataServerNodeStatus {
+    INIT(0),SERVING(1),DOWNING(2),DOWN(3);
 
     private int value;
-    private Status(int value){
+    private DataServerNodeStatus(int value){
         this.value = value;
     }
 

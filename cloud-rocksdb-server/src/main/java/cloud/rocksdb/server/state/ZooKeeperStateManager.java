@@ -2,10 +2,8 @@ package cloud.rocksdb.server.state;
 
 import com.google.common.collect.Lists;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.leader.LeaderLatch;
 import org.apache.curator.framework.recipes.leader.LeaderLatchListener;
-import org.apache.curator.retry.RetryNTimes;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,8 +18,9 @@ public class ZooKeeperStateManager implements StateManager,AutoCloseable {
 
     private String path;
 
-    public ZooKeeperStateManager(String zookeeper, String path, ShardMasterListener... listeners){
-        this.client = CuratorFrameworkFactory.newClient(zookeeper, new RetryNTimes(10,3000));
+    public ZooKeeperStateManager(CuratorFramework client, String path, ShardMasterListener... listeners){
+        this.client = client;
+        this.path = path;
         this.leaderLatch = new LeaderLatch(client, path);
         this.listeners = listeners == null? Lists.newArrayList(): Arrays.asList(listeners);
         this.leaderLatch.addListener(new LeaderLatchListener() {

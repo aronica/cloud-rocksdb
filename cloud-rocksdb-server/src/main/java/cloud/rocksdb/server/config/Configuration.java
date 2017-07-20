@@ -92,12 +92,24 @@ public class Configuration {
         return getZkRoot() + "/" + properties.getOrDefault(ZK_SHARD_ROOT_KEY,ZK_SHARD_ROOT_DEF) + "/" + "service";
     }
 
+    public String getZkShardParent(){
+        return getZkRoot() + "/" + properties.getOrDefault(ZK_SHARD_ROOT_KEY,ZK_SHARD_ROOT_DEF);
+    }
+
     public String getZkShardRoot(String shardId){
         return getZkRoot() + "/" + properties.getOrDefault(ZK_SHARD_ROOT_KEY,ZK_SHARD_ROOT_DEF)+"/"+shardId;
     }
 
     public String getZkShardChildren(String shardId,String child){
         return getZkShardRoot(shardId) + "/" + child;
+    }
+
+    public String getZkShardServicePath(String shardId){
+        return getZkShardRoot(shardId)+"/"+"service";
+    }
+
+    public String getZkShardServiceInstancePath(String shardId,String host,int port){
+        return getZkShardRoot(shardId)+"/"+"service/"+host+"_"+port;
     }
 
     public String get(String key){
