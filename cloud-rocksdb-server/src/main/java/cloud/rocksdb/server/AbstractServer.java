@@ -30,6 +30,7 @@ public abstract class AbstractServer implements LifeCycle {
     private void initZookeeper() {
         String zookeeper = config.getZookeeperHost();
         curator = CuratorFrameworkFactory.newClient(zookeeper, 30 * 1000, 3000, new RetryNTimes(10, 1000));
+        curator.start();
     }
 
     @Override
@@ -47,7 +48,6 @@ public abstract class AbstractServer implements LifeCycle {
 
     @Override
     public void startup() throws Exception {
-        curator.start();
         doStartup();
     }
 

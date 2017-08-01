@@ -123,7 +123,8 @@ public class DataServer extends AbstractServer {
             System.exit(0);
         }catch (Exception e){
             e.printStackTrace();
-            if(dataServer != null)dataServer.clone();
+            if(dataServer != null)dataServer.shutdown();
+            System.exit(1);
         }
 
     }

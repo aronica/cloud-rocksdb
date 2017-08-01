@@ -4,7 +4,6 @@ import cloud.rocksdb.server.client.command.*;
 import com.google.common.collect.Maps;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +51,7 @@ public class MasterProxyHandler extends ChannelInboundHandlerAdapter {
                 ctx.writeAndFlush(new GetResponse(getResponse));
                 break;
             case PUT:
-                //todo 1. Change to parallel call. 2. Add return strategy,for example ,ONE/ALL/QUORUM
+                //todo 1. Change to parallel call. 2. Add return strategy,for example ,ONE/ALL/QUORUM 3. write wal ?
                 PutCommand putCommand = ((PutCommand)command);
                 CountDownLatch latch = new CountDownLatch(shardDiscover.get(putCommand.getKey()).getDataServers().size());
                 CallbackImpl callback = new CallbackImpl(latch);
@@ -62,7 +61,8 @@ public class MasterProxyHandler extends ChannelInboundHandlerAdapter {
                 try {
                     latch.await(20, TimeUnit.MILLISECONDS);
                 }catch (Exception e){
-                    e.printStackTrace();
+                    log.error("",e);
+                     //todo 1. add exception handler
                 }
                 ctx.writeAndFlush(new PutResponse());
                 break;
@@ -78,7 +78,7 @@ public class MasterProxyHandler extends ChannelInboundHandlerAdapter {
                 try {
                     latch2.await(20, TimeUnit.MILLISECONDS);
                 }catch (Exception e){
-                    e.printStackTrace();
+                    log.error("",e);
                 }
                 ctx.writeAndFlush(new MultiGetResponse((Map<byte[], byte[]>) ret));
                 break;
@@ -92,12 +92,12 @@ public class MasterProxyHandler extends ChannelInboundHandlerAdapter {
                 try {
                     deleteLatch.await(20, TimeUnit.MILLISECONDS);
                 }catch (Exception e){
-                    e.printStackTrace();
+                    log.error("",e);
                 }
                 ctx.writeAndFlush(new DeleteResponse());
                 break;
             case GET_LATEST_SEQ:
-                //not implemented.
+                //no implemented yet.
                 break;
             case EXIST:
                 ExistCommand existCommand = (ExistCommand)command;
@@ -109,14 +109,10 @@ public class MasterProxyHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("channelReadComplete");
-    }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        cause.printStackTrace();
+        log.error("",cause);
         ctx.close();
     }
 }

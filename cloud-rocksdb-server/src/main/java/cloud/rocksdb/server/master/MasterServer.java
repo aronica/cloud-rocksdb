@@ -30,6 +30,7 @@ public class MasterServer extends AbstractServer {
     private List<String> shardIdList = Arrays.asList("1");
     private EventLoopGroup eventLoopGroup;
     private ServerBootstrap bootstrap;
+    ChannelFuture future;
 
     @Override
     protected int doGetPort() {
@@ -56,6 +57,7 @@ public class MasterServer extends AbstractServer {
                         ch.pipeline().addLast(new MasterProxyHandler(shardDiscover));
                     }
                 });
+        shardDiscover.init();
     }
 
     @Override
@@ -67,15 +69,13 @@ public class MasterServer extends AbstractServer {
     @Override
     public void doStartup() throws Exception {
         shardDiscover.startup();
-        ChannelFuture future = bootstrap.bind().sync();
-        future.channel().closeFuture().sync();
+        this.future = bootstrap.bind().sync();
     }
 
 
 
     public static void main(String[] args) throws Exception {
         Configuration config = new Configuration();
-
         MasterServer masterServer = new MasterServer(config);
         masterServer.init();
         masterServer.startup();

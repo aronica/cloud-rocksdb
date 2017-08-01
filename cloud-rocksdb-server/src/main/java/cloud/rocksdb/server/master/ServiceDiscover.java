@@ -36,8 +36,9 @@ public class ServiceDiscover implements LifeCycle {
     private ArrayBlockingQueue<Pair<Container,DataServerNode>> offLineServers = new ArrayBlockingQueue<Pair<Container, DataServerNode>>(1000);
     private Thread daemon = new Thread(()->{
         while(true){
-            Pair<Container,DataServerNode> pair = offLineServers.poll();
+            Pair<Container,DataServerNode> pair = null;
             try {
+                pair = offLineServers.take();
                 Container container = pair.getKey();
                 DataServerNode dataServerNode = pair.getValue();
                 Thread.sleep(3000);
@@ -135,8 +136,8 @@ public class ServiceDiscover implements LifeCycle {
 
     @Override
     public void startup() throws Exception {
-        this.cache.start();
-        this.shardNodeCache.start();
+//        this.cache.start();
+//        this.shardNodeCache.start();
         daemon.setDaemon(true);
         daemon.start();
     }
@@ -145,6 +146,7 @@ public class ServiceDiscover implements LifeCycle {
     public void init() throws Exception {
         ZKUtils.createPersistentPathIfNotExist(client,config.getZkShardRoot(shardId));
         this.shardNodeCache = new NodeCache(client,config.getZkShardRoot(shardId),false);
+        this.shardNodeCache.start();
         shardNodeCache.getListenable().addListener(new NodeCacheListener() {
             @Override
             public void nodeChanged() throws Exception {
@@ -155,6 +157,25 @@ public class ServiceDiscover implements LifeCycle {
             }
         });
         this.cache = new PathChildrenCache(client,config.getZkShardServicePath(shardId),true);
+        this.cache.start();
+
+        List<String> childrens = this.client.getChildren().forPath(config.getZkShardServicePath(shardId));
+        for(String path:childrens){
+            byte[] data = client.getData().forPath(config.getZkShardServicePath(shardId)+"/"+path);
+            if(data != null){
+                Container container = JacksonUtil.toObject(data,Container.class);
+                DataServerNode dataServerNode = new DataServerNode(config,container);
+                DataServerNode old = serviceProviderMap.putIfAbsent(container,dataServerNode);
+                if(old != null){
+                    dataServerNode.close();
+                }else{
+                    dataServerNode.init();
+                    dataServerNode.startup();
+                    dataServerNode.getStatus().set(DataServerNodeStatus.SERVING);
+                }
+            }
+        }
+
         cache.getListenable().addListener(new PathChildrenCacheListener() {
             @Override
             public void childEvent(CuratorFramework curatorFramework, PathChildrenCacheEvent pathChildrenCacheEvent) throws Exception {

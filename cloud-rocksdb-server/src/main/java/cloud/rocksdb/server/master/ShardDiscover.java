@@ -5,7 +5,6 @@ import cloud.rocksdb.server.config.LifeCycle;
 import cloud.rocksdb.server.zookeeper.ZKUtils;
 import com.google.common.collect.Maps;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
@@ -56,17 +55,7 @@ public class ShardDiscover implements LifeCycle {
         ZKUtils.createPersistentPathIfNotExist(client,config.getZkShardParent());
         cache = new PathChildrenCache(client,config.getZkShardParent(),true);
         leaderLatch = new LeaderLatch(client,config.getZkServiceDiscoveryPath());
-        leaderLatch.addListener(new LeaderLatchListener() {
-            @Override
-            public void isLeader() {
-                master.set(true);
-            }
 
-            @Override
-            public void notLeader() {
-                master.set(false);
-            }
-        });
     }
 
     public ServiceDiscover get(byte[] key){
@@ -81,6 +70,7 @@ public class ShardDiscover implements LifeCycle {
 
     @Override
     public void startup() throws Exception {
+        cache.start();
         cache.getListenable().addListener(new PathChildrenCacheListener() {
             @Override
             public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
@@ -97,10 +87,8 @@ public class ShardDiscover implements LifeCycle {
                 }
             }
         });
-        cache.start();
-        for (int i = 0; i < cache.getCurrentData().size(); i++) {
-            ChildData cd = cache.getCurrentData().get(i);
-            String path = cd.getPath();
+        List<String>childrens = client.getChildren().forPath(config.getZkShardParent());
+        for (String path:childrens) {
             String shardId = path.substring(path.lastIndexOf("/") + 1);
             ServiceDiscover discover = new ServiceDiscover(config, client,this, shardId);
             ServiceDiscover old = serviceDiscoverMap.putIfAbsent(shardId,discover);
@@ -112,6 +100,17 @@ public class ShardDiscover implements LifeCycle {
             }
         }
         leaderLatch.start();
+        leaderLatch.addListener(new LeaderLatchListener() {
+            @Override
+            public void isLeader() {
+                master.set(true);
+            }
+
+            @Override
+            public void notLeader() {
+                master.set(false);
+            }
+        });
     }
 
     @Override

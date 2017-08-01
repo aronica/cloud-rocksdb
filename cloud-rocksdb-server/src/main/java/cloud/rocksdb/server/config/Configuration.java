@@ -28,6 +28,9 @@ public class Configuration {
 
     public static final String ZK_SHARD_ROOT_DEF = "shard";
     public static final String ZK_SHARD_ROOT_KEY = "zk.instance.path";
+    private static final String ZK_MASTER_KEY = "zk.master.path";
+    private static final String ZK_MASTER_DEF = "master";
+
 
     private Map<String,String> properties;
 
@@ -89,7 +92,7 @@ public class Configuration {
     }
 
     public String getZkServiceDiscoveryPath(){
-        return getZkRoot() + "/" + properties.getOrDefault(ZK_SHARD_ROOT_KEY,ZK_SHARD_ROOT_DEF) + "/" + "service";
+        return getZkRoot() + "/" + properties.getOrDefault(ZK_MASTER_KEY,ZK_MASTER_DEF) + "/" + "service";
     }
 
     public String getZkShardParent(){
