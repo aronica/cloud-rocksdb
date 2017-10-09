@@ -36,7 +36,7 @@ public abstract class AbstractServer implements LifeCycle {
     @Override
     public void init() throws Exception {
         initContainer();
-        initZookeeper();
+//        initZookeeper();
         doInit();
     }
 
